@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en" ng-app="kahrlHomeApp" ng-controller="imageController">
+  <head>
+    <meta charset="utf-8">
+    <title>Kahrl Family Website</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <link href="http://getbootstrap.com/2.3.2/assets/css/bootstrap.css" rel="stylesheet">
+    <style type="text/css">
+	  
+	 
+	
+      body {
+	    font-family: monaco, courier new, trebuchet ms;
+        padding-top: 60px;
+        padding-bottom: 40px;
+      }
+	  a:visited {
+	     font-weight: bold;
+	  }
+	  
+    </style>
+	<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.2.15/angular.min.js" ></script>
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="../assets/js/html5shiv.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="http://getbootstrap.com/2.3.2/assets/ico/apple-touch-icon-144-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="http://getbootstrap.com/2.3.2/assets/ico/apple-touch-icon-114-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="http://getbootstrap.com/2.3.2/assets/ico/apple-touch-icon-72-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" href="http://getbootstrap.com/2.3.2/assets/ico/apple-touch-icon-57-precomposed.png">
+  
+    <script src="http://sdk.amazonaws.com/js/aws-sdk-2.0.0-rc10.min.js"></script>
+   	  
+	  <script type="text/javascript">
+	    var debug;
+	    var baseurl = 'http://pkahrltest.s3-website-us-east-1.amazonaws.com';
+	    var bucketName = 'pkahrltest';
+		var prefix = 'images/';
+		var imagesS3 = new AWS.S3();
+		var videosS3 = new AWS.S3({region: 'us-west-1'});
+	        
+       // helper function to get a listing of the AWS bucket anonymously
+	    function unauthenticatedRequest(callback, params, s3) {
+		     var request = s3.listObjects(params);
+             request.removeListener('validate', AWS.EventListeners.Core.VALIDATE_CREDENTIALS);
+             request.removeListener('sign', AWS.EventListeners.Core.SIGN);
+             request.send(callback);
+        }
+	  
+	    var kahrlHomeApp = angular.module('kahrlHomeApp', []);
+		
+        // the main controller for loading image links	  
+	    kahrlHomeApp.controller('imageController', function($scope, $http){
+		   var imageBucketName = 'pkahrltest';
+		   var imagePrefix = 'images/';
+		   var imageParams = {Prefix: "images/", Bucket: "pkahrltest"};
+		   var loadImageData = function (err, data) {
+			    //TODO handle error
+			    //filter out folder name in the bucket
+			    data.Contents.filter(function(el){if (el.Size == 0)return false; return true;});
+			    //sort by LastModified date so that the most recent pictures will be first
+			    data.Contents.sort(function(a,b){return b.LastModified - a.LastModified});
+			    //grab the first element in the list to display it right away
+			    last = data.Contents.shift();
+			    data.Contents.unshift(last);
+			    $scope.imageData = data.Contents;
+			    // call handleClick to display the first image
+			    $scope.handleClick(last.Key);
+			}
+		    unauthenticatedRequest(loadImageData, imageParams, imagesS3);
+			
+			var videoParams = {Prefix: "videos/", Bucket: "video.philconsultant.com"};
+			var loadVideoData = function(err, data){
+			    data.Contents.sort(function(a,b){return b.LastModified - a.LastModified});
+				var last = data.Contents.shift();
+				$scope.handleVideoClick(last.Key);
+				data.Contents.unshift(last);
+				$scope.videoData = data.Contents;
+			}
+			
+			unauthenticatedRequest(loadVideoData, videoParams, videosS3);
+			
+			$scope.handleClick = function(imageName, id, event){
+			   	$scope.showImage = false;
+				$scope.currentImageKey = imageName;
+				currentImageName = imageName.substring(prefix.length, imageName.length);
+				imgUrl = baseurl + "/" + imageName;
+				$scope.currentImageName = currentImageName;
+		        $scope.currentImage = imgUrl;
+				$http.get(imgUrl).success(function(){
+				     $scope.showImage = true;	
+				}).error(function(data, status, headers, config) {
+				    //show the image anyway because Safari is whacked.  (XMLHttpRequest returns Origin not allowed error on all but first request)
+                    $scope.showImage = true;
+					 $scope.$digest();		
+                });
+				$scope.visited.push(id);
+				$scope.$digest();		
+			};
+			
+			$scope.nextPicture = function(){
+			    var found = false;
+				debug = $scope.currentImageKey;
+				debug = $scope.imageData
+				$scope.imageData.forEach(function(a){
+				    if(found){
+					   $scope.handleClick(a.Key, a.LastModified.getTime());
+					   return false; 
+					}
+				    if (a.Key == $scope.currentImageKey)found=true;
+				});
+			}
+			
+			
+			$scope.handleVideoClick = function(videoName, id){
+			    var videoUrl = 'https://video.philconsultant.com.s3.amazonaws.com/' + videoName;
+				jwplayer('mediaplayer').setup({
+                    'id': 'playerID',
+                    'width': '640',
+                    'height': '480',
+                    'file': videoUrl
+                });
+				$scope.currentVideoName = videoName.substring(7);
+				$scope.visited.push(id);
+				//$scope.$digest();
+			}
+			// a list of the id's of the links that have been clicked.
+			$scope.visited = [];
+	}); 
+    </script>
+  </head>
+
+  <body >
+  <!--
+   meow
+  -->
+   <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container-fluid">
+          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="brand" href="#">Kahrl Family Website Home</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+			  <!--
+              <li class="active"><a href="#">Home</a></li>
+			  -->
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+        <div class="hero-unit">
+            <h2>Kahrl Family Website</h2>
+			     <p>Welcome to the new version of the site, we are still experimenting with the overall look and feel.  Contact us if you have any comments or suggestions.</p>
+                 <p>Also see our <a target='_blank' href="http://phil-kahrl.tumblr.com/">Tumblr Page</a> aka "Slugton Abbey" for more pictures and videos.</p>
+				 <p>For a trip on the way-back machine go the the <a target=_blank href="http://50.87.146.165/~philkah/">Old Website</a>
+        </div>
+   
+      <h3 style="text-align:center">Pictures</h3>
+      <!-- main row -->
+      <div class="row">
+       <div class="span3" style=" max-height:550px;  height:auto !important;  height:550px; overflow:scroll">
+          <ul class="unstyled">
+            <li ng-repeat="name in imageData">
+                <span ng-if="name.Size > 0">
+				    <a style="{{visited.indexOf(name.LastModified.getTime()) > 0 ?'font-weight:bold':''}}"
+				    ng-click="handleClick(name.Key, name.LastModified.getTime(), $event)" 
+				    ng-bind-template="{{name.Key.substring(7, name.Key.length)}} ({{name.LastModified.getMonth()+1}}/{{name.LastModified.getUTCDate()}}/{{name.LastModified.getFullYear()}})">
+				    </a>
+				</span>
+            </li>
+        </ul>
+        
+       </div>
+        <div class="span9">
+          <div id="imageDisplayArea">
+		    <a ng-click="nextPicture()">Next Picture</a>
+            <h4 ng-bind-template="{{currentImageName}}"></h4>
+		    <span id="loadingMessage" ng-bind-template="Loading image {{currentImageName}}" ng-show="!showImage"> </span>
+		    <img id="currentImage" src="{{currentImage}}" ng-show="showImage" >
+		  </div> 
+        </div>
+      </div>
+	  <hr />
+	  <h3 style="text-align:center">Videos</h3>
+      <div class="row"><span class="span3"> <a href="https://goo.gl/photos/z4hXpDs3WBGZ8N1g6" target="_blank">Milos Concert Album</a></span><span class="span9">
+         
+  </span>
+
+      </div>
+	  <!-- video row -->
+	  <div class="row">
+	   <div class="span3" style=" max-height:550px;  height:auto !important;  height:550px; overflow:scroll">
+          <ul class="unstyled">
+            <li ng-repeat="name in videoData">
+                <span ng-if="name.Size > 0">
+				    <a style="{{visited.indexOf(name.LastModified.getTime()) > 0 ?'font-weight:bold':''}}"
+				    ng-click="handleVideoClick(name.Key, name.LastModified.getTime(), $event)" 
+				    ng-bind-template="{{name.Key.substring(7, name.Key.length)}} ({{name.LastModified.getMonth()+1}}/{{name.LastModified.getUTCDate()}}/{{name.LastModified.getFullYear()}})">
+				    </a>
+				</span>
+            </li>
+        </ul>
+        
+       </div>
+	      <div class="span9">
+		      <h4 ng-bind-template="{{currentVideoName}}"></h4>
+			  <a ng-href="http://video.philconsultant.com.s3.amazonaws.com/videos/{{currentVideoName}}">Download (Use if video doesn't play on your browser)</a>
+		      <div id='mediaplayer'></div>
+		  </div>
+	  </div>
+	  
+	 <hr>
+
+    <footer>
+        <p></p>
+    </footer>
+
+    </div> <!-- /container -->
+	<!-- jw player -->
+	<script src="http://jwpsrv.com/library/N+BsVM1gEeOzMyIACi0I_Q.js"></script>
+    <script src="http://getbootstrap.com/2.3.2/assets/js/jquery.js"></script>
+    <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-transition.js"></script>
+    <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-alert.js"></script>
+    <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-modal.js"></script>
+    <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-dropdown.js"></script>
+    <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-scrollspy.js"></script>
+    <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-tab.js"></script>
+    <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-tooltip.js"></script>
+    <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-popover.js"></script>
+    <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-button.js"></script>
+    <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-collapse.js"></script>
+    <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-carousel.js"></script>
+    <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-typeahead.js"></script>
+  </body>
+</html>
