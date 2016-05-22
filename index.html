@@ -1,8 +1,19 @@
 <!doctype html>
 <html lang="en" ng-app="kahrlHomeApp" ng-controller="imageController">
   <head>
+
+    <script>
+    <!-- SITE SETTINGS -->
+    	var BASE_URL = 'http://pkahrltest.s3-website-us-east-1.amazonaws.com';
+	  	var BUCKET_NAME = 'pkahrl-headless-s3';
+		var PREFIX = 'images/';
+		var SITE_TITLE = "website title";
+		var SITE_BANNER = "website banner";
+		var WELCOME_MSG = "Welcome to the site";
+    </script>
+
     <meta charset="utf-8">
-    <title>Kahrl Family Website</title>
+    <title>{{siteTitle}}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="">
@@ -39,9 +50,11 @@
    	  
 	  <script type="text/javascript">
 	    var debug;
-	    var baseurl = 'http://pkahrltest.s3-website-us-east-1.amazonaws.com';
-	    var bucketName = 'pkahrltest';
-		var prefix = 'images/';
+	    var baseurl = BASE_URL;
+	    var bucketName = BUCKET_NAME
+		var prefix = PREFIX;
+        
+
 		var imagesS3 = new AWS.S3();
 		var videosS3 = new AWS.S3({region: 'us-west-1'});
 	        
@@ -57,9 +70,13 @@
 		
         // the main controller for loading image links	  
 	    kahrlHomeApp.controller('imageController', function($scope, $http){
-		   var imageBucketName = 'pkahrltest';
-		   var imagePrefix = 'images/';
-		   var imageParams = {Prefix: "images/", Bucket: "pkahrltest"};
+		   var imageBucketName = BUCKET_NAME;
+		   var imagePrefix = PREFIX;
+		   var imageParams = {Prefix: PREFIX, Bucket: BUCKET_NAME};
+
+		   $scope.siteTitle = SITE_TITLE;
+           $scope.siteBanner = SITE_BANNER;
+           $scope.siteWelcomeMsg = WELCOME_MSG;
 		   var loadImageData = function (err, data) {
 			    //TODO handle error
 			    //filter out folder name in the bucket
@@ -74,18 +91,7 @@
 			    $scope.handleClick(last.Key);
 			}
 		    unauthenticatedRequest(loadImageData, imageParams, imagesS3);
-			
-			var videoParams = {Prefix: "videos/", Bucket: "video.philconsultant.com"};
-			var loadVideoData = function(err, data){
-			    data.Contents.sort(function(a,b){return b.LastModified - a.LastModified});
-				var last = data.Contents.shift();
-				$scope.handleVideoClick(last.Key);
-				data.Contents.unshift(last);
-				$scope.videoData = data.Contents;
-			}
-			
-			unauthenticatedRequest(loadVideoData, videoParams, videosS3);
-			
+						
 			$scope.handleClick = function(imageName, id, event){
 			   	$scope.showImage = false;
 				$scope.currentImageKey = imageName;
@@ -116,20 +122,6 @@
 				    if (a.Key == $scope.currentImageKey)found=true;
 				});
 			}
-			
-			
-			$scope.handleVideoClick = function(videoName, id){
-			    var videoUrl = 'https://video.philconsultant.com.s3.amazonaws.com/' + videoName;
-				jwplayer('mediaplayer').setup({
-                    'id': 'playerID',
-                    'width': '640',
-                    'height': '480',
-                    'file': videoUrl
-                });
-				$scope.currentVideoName = videoName.substring(7);
-				$scope.visited.push(id);
-				//$scope.$digest();
-			}
 			// a list of the id's of the links that have been clicked.
 			$scope.visited = [];
 	}); 
@@ -148,12 +140,10 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="brand" href="#">Kahrl Family Website Home</a>
+          <a class="brand" href="#">{{siteBanner}}</a>
           <div class="nav-collapse collapse">
             <ul class="nav">
-			  <!--
-              <li class="active"><a href="#">Home</a></li>
-			  -->
+			  
             </ul>
           </div>
         </div>
@@ -162,10 +152,8 @@
 
     <div class="container">
         <div class="hero-unit">
-            <h2>Kahrl Family Website</h2>
-			     <p>Welcome to the new version of the site, we are still experimenting with the overall look and feel.  Contact us if you have any comments or suggestions.</p>
-                 <p>Also see our <a target='_blank' href="http://phil-kahrl.tumblr.com/">Tumblr Page</a> aka "Slugton Abbey" for more pictures and videos.</p>
-				 <p>For a trip on the way-back machine go the the <a target=_blank href="http://50.87.146.165/~philkah/">Old Website</a>
+            <h2>{{siteBanner}}</h2>
+			     <p>{{siteWelcomeMsg}} </p>
         </div>
    
       <h3 style="text-align:center">Pictures</h3>
@@ -201,26 +189,7 @@
 
       </div>
 	  <!-- video row -->
-	  <div class="row">
-	   <div class="span3" style=" max-height:550px;  height:auto !important;  height:550px; overflow:scroll">
-          <ul class="unstyled">
-            <li ng-repeat="name in videoData">
-                <span ng-if="name.Size > 0">
-				    <a style="{{visited.indexOf(name.LastModified.getTime()) > 0 ?'font-weight:bold':''}}"
-				    ng-click="handleVideoClick(name.Key, name.LastModified.getTime(), $event)" 
-				    ng-bind-template="{{name.Key.substring(7, name.Key.length)}} ({{name.LastModified.getMonth()+1}}/{{name.LastModified.getUTCDate()}}/{{name.LastModified.getFullYear()}})">
-				    </a>
-				</span>
-            </li>
-        </ul>
-        
-       </div>
-	      <div class="span9">
-		      <h4 ng-bind-template="{{currentVideoName}}"></h4>
-			  <a ng-href="http://video.philconsultant.com.s3.amazonaws.com/videos/{{currentVideoName}}">Download (Use if video doesn't play on your browser)</a>
-		      <div id='mediaplayer'></div>
-		  </div>
-	  </div>
+	  
 	  
 	 <hr>
 
@@ -229,8 +198,7 @@
     </footer>
 
     </div> <!-- /container -->
-	<!-- jw player -->
-	<script src="http://jwpsrv.com/library/N+BsVM1gEeOzMyIACi0I_Q.js"></script>
+	
     <script src="http://getbootstrap.com/2.3.2/assets/js/jquery.js"></script>
     <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-transition.js"></script>
     <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-alert.js"></script>
