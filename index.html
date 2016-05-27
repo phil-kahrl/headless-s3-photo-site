@@ -4,12 +4,12 @@
 
     <script>
     <!-- SITE SETTINGS -->
-    	var BASE_URL = 'http://pkahrltest.s3-website-us-east-1.amazonaws.com';
+    	var BASE_URL = 'http://pkahrl-headless-s3.s3-website-us-west-2.amazonaws.com';
 	  	var BUCKET_NAME = 'pkahrl-headless-s3';
-		var PREFIX = 'images/';
-		var SITE_TITLE = "website title";
-		var SITE_BANNER = "website banner";
-		var WELCOME_MSG = "Welcome to the site";
+		  var PREFIX = 'images/';
+		  var SITE_TITLE = "website title";
+		  var SITE_BANNER = "website banner";
+		  var WELCOME_MSG = "Welcome to the site";
     </script>
 
     <meta charset="utf-8">
@@ -56,7 +56,6 @@
         
 
 		var imagesS3 = new AWS.S3();
-		var videosS3 = new AWS.S3({region: 'us-west-1'});
 	        
        // helper function to get a listing of the AWS bucket anonymously
 	    function unauthenticatedRequest(callback, params, s3) {
@@ -182,14 +181,6 @@
         </div>
       </div>
 	  <hr />
-	  <h3 style="text-align:center">Videos</h3>
-      <div class="row"><span class="span3"> <a href="https://goo.gl/photos/z4hXpDs3WBGZ8N1g6" target="_blank">Milos Concert Album</a></span><span class="span9">
-         
-  </span>
-
-      </div>
-	  <!-- video row -->
-	  
 	  
 	 <hr>
 

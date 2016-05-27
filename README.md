@@ -52,6 +52,22 @@ policy will look like:
 
 substitute in th ename of the bucket and folder created in step 5 for BUCKET_NAME and IMAGE_FOLDER
 
+7.  Upload the files "index.html" and "error.html" to your S-3 bucket.  Under Properties -> Permissions for the bucket, add "Everyone" and check permissions "Open/Download".
+
+8.  Set the CORS policy for the bucket.  Click on "Edit CORS configuration" for your bucket and paste in the following:
+
+<?xml version="1.0" encoding="UTF-8"?>
+<CORSConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+    <CORSRule>
+        <AllowedOrigin>*</AllowedOrigin>
+        <AllowedMethod>GET</AllowedMethod>
+        <AllowedMethod>PUT</AllowedMethod>
+        <AllowedMethod>POST</AllowedMethod>
+        <AllowedMethod>DELETE</AllowedMethod>
+        <AllowedHeader>*</AllowedHeader>
+    </CORSRule>
+</CORSConfiguration>
+
 
 CONFIGURATION
 
