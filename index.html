@@ -186,7 +186,7 @@ mainApp.controller('imageController', function($scope, $http){
       <a ng-click="nextPicture()">Next Picture</a>
       <h4 ng-bind-template="{{currentImageName}}"></h4>
       <span id="loadingMessage" ng-bind-template="Loading image {{currentImageName}}" ng-show="!showImage"> </span>
-      <img id="currentImage" src="{{currentImage}}" ng-show="showImage" >
+      <img id="currentImage" ng-src="{{currentImage}}" ng-show="showImage" >
     </div> 
   </div>
 </div>
