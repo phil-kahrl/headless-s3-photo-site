@@ -5,11 +5,11 @@
   <script>
   <!-- SITE SETTINGS -->
   var BASE_URL = '<Add your endpoint from your bucket-> Properties -> Static Website Hosting -> endpoint>';
-  var BUCKET_NAME = '<Add your bucket name here>';
-  var PREFIX = '<Add the name of the folder used for photos in your S-3 bucket>';
-  var SITE_TITLE = '<Text to be used for the site title>';
-  var SITE_BANNER = '<Text to be used for the site banner>';
-  var WELCOME_MSG = '<Text to be used for the site welcome message>';
+  var BUCKET_NAME = '<Add your bucket name here>'; 
+  var PREFIX = '<Add the name of the folder used for photos in your S-3 bucket>'; //prefix should end with '/'
+  var SITE_TITLE = 'Text to be used for the site title';
+  var SITE_BANNER = 'Text to be used for the site banner';
+  var WELCOME_MSG = 'Text to be used for the site welcome message';
   </script>
 
   <meta charset="utf-8">
@@ -19,20 +19,17 @@
   <meta name="author" content="">
 
   <link href="http://getbootstrap.com/2.3.2/assets/css/bootstrap.css" rel="stylesheet">
+
   <style type="text/css">
+    body {
+      padding-top: 60px;
+      padding-bottom: 40px;
+    }
+    a:visited {
+      font-weight: bold;
+    }
+   </style>
 
-
-
-  body {
-   font-family: monaco, courier new, trebuchet ms;
-   padding-top: 60px;
-   padding-bottom: 40px;
- }
- a:visited {
-  font-weight: bold;
-}
-
-</style>
 <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.2.15/angular.min.js" ></script>
 <!-- Fav and touch icons -->
 <link rel="apple-touch-icon-precomposed" sizes="144x144" href="http://getbootstrap.com/2.3.2/assets/ico/apple-touch-icon-144-precomposed.png">
@@ -51,71 +48,90 @@ var prefix = PREFIX;
 
 var imagesS3 = new AWS.S3();
 
-       // helper function to get a listing of the AWS bucket anonymously
-       function unauthenticatedRequest(callback, params, s3) {
-         var request = s3.listObjects(params);
-         request.removeListener('validate', AWS.EventListeners.Core.VALIDATE_CREDENTIALS);
-         request.removeListener('sign', AWS.EventListeners.Core.SIGN);
-         request.send(callback);
-       }
+// helper function to get a listing of the AWS bucket anonymously
+function unauthenticatedRequest(callback, params, s3) {
+    var request = s3.listObjects(params);
+    request.removeListener('validate', AWS.EventListeners.Core.VALIDATE_CREDENTIALS);
+    request.removeListener('sign', AWS.EventListeners.Core.SIGN);
+    request.send(callback);
+}
 
-       var mainApp = angular.module('mainApp', []);
+var mainApp = angular.module('mainApp', []);
 
-      // the main controller for loading image links	  
-      mainApp.controller('imageController', function($scope, $http){
-       var imageBucketName = BUCKET_NAME;
-       var imagePrefix = PREFIX;
-       var imageParams = {Prefix: PREFIX, Bucket: BUCKET_NAME};
+// the main controller for loading image links	  
+mainApp.controller('imageController', function($scope, $http){
+    var imageBucketName = BUCKET_NAME;
+    $scope.imagePrefix = PREFIX;
+    var imageParams = {Prefix: PREFIX, Bucket: BUCKET_NAME};
 
-       $scope.siteTitle = SITE_TITLE;
-       $scope.siteBanner = SITE_BANNER;
-       $scope.siteWelcomeMsg = WELCOME_MSG;
-       var loadImageData = function (err, data) {
-			    //filter out folder name in the bucket
-			    data.Contents.filter(function(el){if (el.Size == 0)return false; return true;});
-			    //sort by LastModified date so that the most recent pictures will be first
-			    data.Contents.sort(function(a,b){return b.LastModified - a.LastModified});
-			    //grab the first element in the list to display it right away
-			    last = data.Contents.shift();
-			    data.Contents.unshift(last);
-			    $scope.imageData = data.Contents;
-			    // call handleClick to display the first image
-			    $scope.handleClick(last.Key);
-       }
-       unauthenticatedRequest(loadImageData, imageParams, imagesS3);
+    $scope.siteTitle = SITE_TITLE;
+    $scope.siteBanner = SITE_BANNER;
+    $scope.siteWelcomeMsg = WELCOME_MSG;
 
-       $scope.handleClick = function(imageName, id, event){
-         $scope.showImage = false;
-         $scope.currentImageKey = imageName;
-         currentImageName = imageName.substring(prefix.length, imageName.length);
-         imgUrl = baseurl + "/" + imageName;
-         $scope.currentImageName = currentImageName;
-         $scope.currentImage = imgUrl;
-         $http.get(imgUrl).success(function(){
-          $scope.showImage = true;	
-        }).error(function(data, status, headers, config) {
-				      /*show the image anyway because Safari is whacked.  
-              (XMLHttpRequest returns Origin not allowed error on all but first request*/
-                $scope.showImage = true;
-                $scope.$digest();		
-              });
-        $scope.visited.push(id);
-        $scope.$digest();		
-      };
 
-      $scope.nextPicture = function(){
-       var found = false;
-       $scope.imageData.forEach(function(a){
-        if(found){
-          $scope.handleClick(a.Key, a.LastModified.getTime());
-          return false; 
-        }
-        if (a.Key == $scope.currentImageKey)found=true;
-      });
-     }
-			// a list of the id's of the links that have been clicked.
-			$scope.visited = [];
-   }); 
+    // variable to keep track of which image links have been visited.
+    $scope.visited = [];
+
+    var loadImageData = function (err, data) {
+		    //filter out folder name in the bucket
+			  data.Contents.filter(function(el){if (el.Size == 0)return false; return true;});
+			  //sort by LastModified date so that the most recent pictures will be first
+			  data.Contents.sort(function(a,b){return b.LastModified - a.LastModified});
+			  //grab the first element in the list to display it right away
+			  last = data.Contents.shift();
+			  data.Contents.unshift(last);
+			  $scope.imageData = data.Contents;
+			  // call handleClick to display the first image
+			  $scope.handleClick(last.Key);
+    }
+    //load all the image data from the bucket.   
+    unauthenticatedRequest(loadImageData, imageParams, imagesS3);
+    
+    /*
+    Handler for when a user clicks on one of the image links.  This will get
+    the image and cause it to be displayed.
+    */
+    $scope.handleClick = function(imageName, id, event){
+        $scope.showImage = false;
+        $scope.currentImageKey = imageName;
+        currentImageName = imageName.substring($scope.imagePrefix.length, imageName.length);
+        imgUrl = baseurl + "/" + imageName;
+        $scope.currentImageName = currentImageName;
+         
+        $http.get(imgUrl).success(function(){
+            $scope.showImage = true; 
+            $scope.currentImage = imgUrl;
+            $scope.visited.push(id);
+           
+         }).error(function(data, status, headers, config) {
+             /* Show the image anyway to handle error in  Safari   
+             (XMLHttpRequest returns Origin not allowed error on all but first request) */
+             $scope.showImage = true;
+         });
+       };
+       
+    /*
+      Handler for the "nextPicture" function.
+      This will iterate through the image list, when it finds the image in the current
+      list it will grab the name and modified date of the next image, and pass those 
+      values to the handleClick function.
+    */
+    $scope.nextPicture = function(){
+        var key;
+        var timestamp;
+        var found;
+        $scope.imageData.forEach(function(a){
+            if(found && !key){
+                key = a.Key;
+                timestamp = a.LastModified.getTime();
+            } else if (a.Key == $scope.currentImageKey){
+                found=true;
+            }
+        });
+        $scope.handleClick(key, timestamp);
+    }
+			
+ }); 
 </script>
 </head>
 
@@ -156,7 +172,7 @@ var imagesS3 = new AWS.S3();
         <span ng-if="name.Size > 0">
           <a style="{{visited.indexOf(name.LastModified.getTime()) > 0 ?'font-weight:bold':''}}"
             ng-click="handleClick(name.Key, name.LastModified.getTime(), $event)" 
-            ng-bind-template="{{name.Key.substring(7, name.Key.length)}} ({{name.LastModified.getMonth()+1}}/{{name.LastModified.getUTCDate()}}/{{name.LastModified.getFullYear()}})">
+            ng-bind-template="{{name.Key.substring(imagePrefix.length, name.Key.length)}} ({{name.LastModified.getMonth()+1}}/{{name.LastModified.getUTCDate()}}/{{name.LastModified.getFullYear()}})">
           </a>
         </span>
       </li>
@@ -181,7 +197,7 @@ var imagesS3 = new AWS.S3();
 </footer>
 
 </div> <!-- /container -->
-
+<!-- Needed by bootstrap -->
 <script src="http://getbootstrap.com/2.3.2/assets/js/jquery.js"></script>
 <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-transition.js"></script>
 <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-alert.js"></script>
