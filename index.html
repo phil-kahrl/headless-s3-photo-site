@@ -92,23 +92,25 @@ mainApp.controller('imageController', function($scope, $http){
     the image and cause it to be displayed.
     */
     $scope.handleClick = function(imageName, id, event){
-        $scope.showImage = false;
-        $scope.currentImageKey = imageName;
-        currentImageName = imageName.substring($scope.imagePrefix.length, imageName.length);
-        imgUrl = baseurl + "/" + imageName;
-        $scope.currentImageName = currentImageName;
+        if(imageName && id){
+            $scope.showImage = false;
+            $scope.currentImageKey = imageName;
+            currentImageName = imageName.substring($scope.imagePrefix.length, imageName.length);
+            imgUrl = baseurl + "/" + imageName;
+            $scope.currentImageName = currentImageName;
          
-        $http.get(imgUrl).success(function(){
-            $scope.showImage = true; 
-            $scope.currentImage = imgUrl;
-            $scope.visited.push(id);
+            $http.get(imgUrl).success(function(){
+                $scope.showImage = true; 
+                $scope.currentImage = imgUrl;
+                $scope.visited.push(id);
            
-         }).error(function(data, status, headers, config) {
-             /* Show the image anyway to handle error in  Safari   
-             (XMLHttpRequest returns Origin not allowed error on all but first request) */
-             $scope.showImage = true;
-         });
-       };
+            }).error(function(data, status, headers, config) {
+                /* Show the image anyway to handle error in  Safari   
+                (XMLHttpRequest returns Origin not allowed error on all but first request) */
+                $scope.showImage = true;
+            });
+        };
+    };
        
     /*
       Handler for the "nextPicture" function.
