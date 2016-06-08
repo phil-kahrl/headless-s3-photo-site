@@ -40,7 +40,6 @@
 <script src="http://sdk.amazonaws.com/js/aws-sdk-2.0.0-rc10.min.js"></script>
 
 <script type="text/javascript">
-var debug;
 var baseurl = BASE_URL;
 var bucketName = BUCKET_NAME
 var prefix = PREFIX;
@@ -92,7 +91,7 @@ mainApp.controller('imageController', function($scope, $http){
     the image and cause it to be displayed.
     */
     $scope.handleClick = function(imageName, id, event){
-        if(imageName && id){
+        if(imageName){
             $scope.showImage = false;
             $scope.currentImageKey = imageName;
             currentImageName = imageName.substring($scope.imagePrefix.length, imageName.length);
