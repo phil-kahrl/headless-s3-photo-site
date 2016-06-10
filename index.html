@@ -7,9 +7,12 @@
   var BASE_URL = '<Add your endpoint from your bucket-> Properties -> Static Website Hosting -> endpoint>';
   var BUCKET_NAME = '<Add your bucket name here>'; 
   var PREFIX = '<Add the name of the folder used for photos in your S-3 bucket>'; //prefix should end with '/'
+  
   var SITE_TITLE = 'Text to be used for the site title';
   var SITE_BANNER = 'Text to be used for the site banner';
   var WELCOME_MSG = 'Text to be used for the site welcome message';
+  //Sort options
+  var SORT_TYPE = "ALPHABETICAL"; //NEWEST_FIRST or ALPHABETICAL 
   </script>
 
   <meta charset="utf-8">
@@ -71,11 +74,18 @@ mainApp.controller('imageController', function($scope, $http){
     // variable to keep track of which image links have been visited.
     $scope.visited = [];
 
+    var newestFirstSort = function(a, b){return b.LastModified - a.LastModified};
+    var alphaSort = function(a, b){
+      if (a.Key > b.Key)return 1;
+      if (a.Key < b.Key)return -1;
+      return 0;
+    }
+    var sortFunction = SORT_TYPE === "NEWEST_FIRST"?newestFirstSort:alphaSort;
     var loadImageData = function (err, data) {
 		    //filter out folder name in the bucket
-			  data.Contents.filter(function(el){if (el.Size == 0)return false; return true;});
+			  data.Contents = data.Contents.filter(function(el){if (el.Size < 1)return false; return true;});
 			  //sort by LastModified date so that the most recent pictures will be first
-			  data.Contents.sort(function(a,b){return b.LastModified - a.LastModified});
+			  data.Contents.sort(sortFunction);
 			  //grab the first element in the list to display it right away
 			  last = data.Contents.shift();
 			  data.Contents.unshift(last);
