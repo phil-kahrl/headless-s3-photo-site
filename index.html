@@ -11,6 +11,7 @@
   var SITE_TITLE = 'Text to be used for the site title';
   var SITE_BANNER = 'Text to be used for the site banner';
   var WELCOME_MSG = 'Text to be used for the site welcome message';
+  var REGION = 'us-west-2';  // Use the actual region for your AWS bucket.
   //Sort options
   var SORT_TYPE = "ALPHABETICAL"; //NEWEST_FIRST or ALPHABETICAL 
   </script>
@@ -48,7 +49,7 @@ var bucketName = BUCKET_NAME
 var prefix = PREFIX;
 
 
-var imagesS3 = new AWS.S3();
+var imagesS3 = new AWS.S3(REGION);
 
 // helper function to get a listing of the AWS bucket anonymously
 function unauthenticatedRequest(callback, params, s3) {

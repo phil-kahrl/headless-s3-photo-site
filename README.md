@@ -20,11 +20,10 @@ USAGE - DETAILS
 
 AWS setup.
 
-1.  Obtain an AWS Account.  This does require a payment device.  Their is a beginning free tier after which you will
-be charged for storage and network usage.  For a personal site hosting on S-3 should cost less $1 /month.
+1.  Obtain an AWS Account.  You can do this at https://console.aws.amazon.com using the login for your Amazon  This does require a payment device.  Their is a beginning free tier after which you will be charged for storage and network usage.  For a personal site hosting on S-3 should cost less $1 /month.   If you are new to AWS you can get a free trial for one year.  Sign up for the "Basic Account".
 
 2.  Create an S-3 bucket in your AWS account.  Following the instructions here:  
-http://docs.aws.amazon.com/AmazonS3/latest/gsg/CreatingABucket.html
+http://docs.aws.amazon.com/AmazonS3/latest/gsg/CreatingABucket.html 
 
 3.  Enable static website hosting for your AWS bucket:  
 http://docs.aws.amazon.com/AmazonS3/latest/dev/WebsiteHosting.html.  When enabling static hosting,
@@ -37,7 +36,7 @@ and
 Error Document as "error.html"
 
 4.  Allow public read access to the bucket you created.  Grant access to "Everyone" for operation "List".
-5.  Create a folder in the bucket to hold your images.  
+5.  Create a folder in the bucket to hold your images.  Click on you newly created bucket and use the "Create Folder" to create a new folder.
 6.  Add a bucket policy to allow images to be retrieved from the above folder.  You do this by adding a "bucket policy" to the AWS bucket.  The bucket
 policy will look like:
 
@@ -85,6 +84,7 @@ See the following JavaScript variables at the top file:
 
   BASE_URL - From the AWS console for your bucket use the URL provided in "Properties -> Static Website Hosting -> endpoint"
   BUCKET_NAME - The name of your S-3 bucket.
+  REGION - The region that your AWS bucket is in e.g. 'us-east-1', 'us-west-2' etc.
   PREFIX - The name of the folder in the S-3 bucket where your photos will be kept.
   SITE_TITLE - This will be the title in the of the website.
   SITE_BANNER - The banner text for the site.
