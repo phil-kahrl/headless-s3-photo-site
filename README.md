@@ -1,6 +1,6 @@
 # headless-s3-photo-site
 
-** This project is currently deprecated and not being maintained.  Another project https://github.com/phil-kahrl/Photo-Book-For-S3 implements the same functionality using ReactJS instead of Angular **
+## This project is currently deprecated and not being maintained.  Another project https://github.com/phil-kahrl/Photo-Book-For-S3 implements the same functionality using ReactJS instead of Angular
 
 This project allows one to create a photo sharing site hosted on AWS S-3.
 
